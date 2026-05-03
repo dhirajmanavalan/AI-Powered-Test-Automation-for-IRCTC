@@ -1,0 +1,25 @@
+# Ignore PyCharm project settings
+.idea/
+
+# Ignore Python cache folders
+__pycache__/
+
+# Ignore compiled Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environments
+.venv/
+.env
+
+# Ignore logs
+reports/logs/
+
+# Ignore Reports
+reports
+reports/html
+reports/allure-results
+
+# Ignore generated tests
+tests/generated/
