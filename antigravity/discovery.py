@@ -1,3 +1,4 @@
+# It scans your project folders and finds all runnable test files automatically.
 from pathlib import Path
 from utils.logger import get_logger
 

@@ -1,4 +1,4 @@
-
+# It defines how the AI should think, behave, and respond for each task.
 """
 This file contains all reusable system prompts and prompt templates
 used by the AI engine.

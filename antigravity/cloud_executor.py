@@ -1,3 +1,5 @@
+# It is a test execution controller that:
+# Takes test files → runs them using pytest → generates reports → returns results
 import subprocess
 from pathlib import Path
 from datetime import datetime

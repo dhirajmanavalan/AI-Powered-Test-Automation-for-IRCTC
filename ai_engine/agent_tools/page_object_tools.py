@@ -1,3 +1,5 @@
+# It tells the AI what actions are allowed and how to use them correctly
+# It is a knowledge provider tool for the AI agent
 from utils.logger import get_logger
 
 logger = get_logger()

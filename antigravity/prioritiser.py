@@ -1,3 +1,4 @@
+# It decides the order in which tests should run based on business importance.
 from pathlib import Path
 from utils.logger import get_logger
 

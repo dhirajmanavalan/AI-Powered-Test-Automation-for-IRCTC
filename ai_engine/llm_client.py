@@ -1,3 +1,7 @@
+# A multi-agent controller that manages AI behavior, tools, and outputs ->It receives
+# Prompt rules
+# Page object tool
+# Output schema
 from pydantic_ai import Agent, Tool
 
 from ai_engine.output_models import (

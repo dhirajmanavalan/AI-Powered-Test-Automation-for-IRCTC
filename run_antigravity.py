@@ -1,4 +1,6 @@
 # run_antigravity.py
+# It is a workflow orchestrator that connects all Antigravity components and runs the full test lifecycle.
+# It takes your tests from storage → decides order → executes them → gives final results.
 
 from antigravity.discovery import TestDiscovery
 from antigravity.prioritiser import TestPrioritiser
