@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from playwright.sync_api import Page
+=======
+from playwright.sync_api import Page, expect, TimeoutError as PlaywrightTimeoutError
+>>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
 
 class MobileLoginPage:
     URL = "https://www.irctc.co.in/nget/train-search"
@@ -7,12 +11,22 @@ class MobileLoginPage:
         self.mobile_page = mobile_page
 
     #LOCATORS
+<<<<<<< HEAD
     IRCTC_LOGIN_LABEL = "// label[text() = 'IRCTC']"
+=======
+    IRCTC_LOGIN_LABEL = "//label[text() = 'IRCTC']"
+>>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
     LOGIN_REGISTER_BUTTON = "//button[contains(text(), 'LOGIN') and contains(text(), 'REGISTER')]"
     USERNAME_INPUT_BOX = "//input[@placeholder='User Name']"
     PASSWORD_INPUT_BOX = "//input[@placeholder='Password']"
     SIGN_IN_BUTTON = "//button[text()='SIGN IN']"
+<<<<<<< HEAD
     NOTIFICATION_POP_UP = "//button[contains(text(), 'Later')]"
+=======
+
+    NOTIFICATION_POP_UP = "//button[contains(text(), 'Later')]"
+   # SIDE_BAR_OVERLAY = "//div[contains(@class, 'ui-widget-overlay ui-sidebar-mask')]"
+>>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
 
 
     def load_login_page(self):
@@ -21,6 +35,16 @@ class MobileLoginPage:
         """
         self.mobile_page.goto(MobileLoginPage.URL)
 
+<<<<<<< HEAD
+=======
+        # CLOSE NOTIFICATION POP UP
+        try:
+            self.mobile_page.locator(self.NOTIFICATION_POP_UP).wait_for(state="visible")
+            self.mobile_page.locator(self.NOTIFICATION_POP_UP).click()
+        except PlaywrightTimeoutError:
+            print("Notification didn't pop up")
+
+>>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
     def login(self, name:str,password:str):
         """
             Logs in to IRCTC using the given username and password.
@@ -40,6 +64,7 @@ class MobileLoginPage:
             Returns:
                 None
         """
+<<<<<<< HEAD
 
         try:
             self.mobile_page.locator(self.NOTIFICATION_POP_UP).wait_for(state="visible")
@@ -47,6 +72,8 @@ class MobileLoginPage:
         except TimeoutError:
             print("Notification didn't pop up")
 
+=======
+>>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
         self.mobile_page.locator(self.IRCTC_LOGIN_LABEL).click()
         self.mobile_page.locator(self.LOGIN_REGISTER_BUTTON).click()
 
@@ -75,4 +102,12 @@ class MobileLoginPage:
 
         self.mobile_page.locator(LOGGED_IN_USER_NAME).wait_for(state="visible")
         logged_in_user_name = self.mobile_page.locator(LOGGED_IN_USER_NAME)
+<<<<<<< HEAD
         return  logged_in_user_name.is_visible()
+=======
+        flag = logged_in_user_name.is_visible()
+
+        # CLOSE THE SIDE NAVIGATION BAR
+        self.mobile_page.keyboard.press("Escape")
+        return flag
+>>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac

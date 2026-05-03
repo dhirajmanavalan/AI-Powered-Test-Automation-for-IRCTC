@@ -1,17 +1,14 @@
 from playwright.sync_api import Page ,expect
-<<<<<<< HEAD
-import re
-=======
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 import re
 from utils.logger import get_logger
+
 logger = get_logger()
 
->>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
-class SearchTrainsPage:
+class MobileSearchTrainsPage:
 
-    def __init__(self, page:Page):
-        self.page = page
+    def __init__(self, mobile_page:Page):
+        self.page = mobile_page
 
     # LOCATORS
     FROM_BOX = "//input[contains(@aria-label,'From station')]"
@@ -21,41 +18,21 @@ class SearchTrainsPage:
     GENERAL_BOX = "//div[contains(@class,'ng-tns-c76-11 ui-dropdown')]"
     SEARCH_BUTTON = "//button[contains(@class,'search_btn')]"
 
-<<<<<<< HEAD
-=======
     NO_DIRECT_TRAIN_POP_UP = "//span[(text()='Yes') and (@class='ui-button-text ui-clickable')]"
 
->>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
     def search_trains(self, source:str, destination:str, date:str=None, classes:str=None, general:str=None):
         # FROM
         from_search = self.page.locator(self.FROM_BOX)
         from_search.fill(source)
-<<<<<<< HEAD
-        #self.page.wait_for_timeout(1000)
-        self.page.locator(f"(//span[contains(.,'{source}')])[1]").wait_for(state="visible")
-
-        self.page.locator(f"(//span[contains(.,'{source}')])[1]")
-=======
         self.page.locator(f"//li[@id='p-highlighted-option']//span[contains(., '{source.upper()}')]").wait_for(state="visible")
->>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
         self.page.keyboard.press("Enter")
 
         # TO
         to_search = self.page.locator(self.TO_BOX)
         to_search.fill(destination)
-<<<<<<< HEAD
-        #self.page.wait_for_timeout(1000)
-        self.page.locator(f"(//span[contains(.,'{destination}')])[1]").wait_for(state="visible")
-
-        self.page.locator(f"(//span[contains(.,'{destination}')])[1]")
-        self.page.keyboard.press("Enter")
-
-=======
         self.page.locator(f"//li[@id='p-highlighted-option']//span[contains(., '{destination.upper()}')]").wait_for(state="visible")
         self.page.keyboard.press("Enter")
 
-
->>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
         #DATE
         if date:
             day = int(date.split("/")[0])
@@ -82,15 +59,13 @@ class SearchTrainsPage:
         #self.page.wait_for_timeout(1000)
         self.page.locator(self.SEARCH_BUTTON).click()
 
-<<<<<<< HEAD
-=======
         try:
             self.page.locator(self.NO_DIRECT_TRAIN_POP_UP).wait_for(state="visible",timeout=2000)
             self.page.locator(self.NO_DIRECT_TRAIN_POP_UP).click()
         except PlaywrightTimeoutError:
             logger.info("Not a In-Direct train or pop up is not visible")
 
->>>>>>> fcb25d53d5759f14abd7c80542ae8584e6d7f3ac
+
     def is_search_results_displayed(self):
         """
            Checks whether the train search result page is displayed.
