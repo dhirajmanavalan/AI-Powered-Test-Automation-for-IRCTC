@@ -22,4 +22,3 @@ reports/html
 reports/allure-results
 
 # Ignore generated tests
-tests/generated/
