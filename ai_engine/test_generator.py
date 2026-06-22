@@ -4,7 +4,6 @@ from pathlib import Path
 from ai_engine.llm_client import PydanticAILLMClient
 from utils.logger import get_logger
 
-
 logger = get_logger()
 
 

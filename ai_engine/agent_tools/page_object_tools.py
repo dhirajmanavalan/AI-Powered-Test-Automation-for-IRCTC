@@ -1,5 +1,3 @@
-# It tells the AI what actions are allowed and how to use them correctly
-# It is a knowledge provider tool for the AI agent
 from utils.logger import get_logger
 
 logger = get_logger()
@@ -32,7 +30,6 @@ LoginPage Rules:
 - Do not hardcode real credentials unless the user explicitly provides them.
 - If credentials are not provided, use placeholder values such as "username" and "password".
 """
-
 SEARCH_TRAIN_PAGE_RULE_SET = """
 ==================================================
 2. SearchTrainsPage
@@ -126,7 +123,6 @@ search_page.search_trains(
 
 assert search_page.is_search_results_displayed()
 """
-
 PNR_STATUS_PAGE_RULE_SET = """
 ==================================================
 3. PNRStatusPage
@@ -145,7 +141,6 @@ Methods:
 PNRStatusPage Rules:
 - Login is not required to check PNR Status search.
 """
-
 TICKET_CANCELLATION_HISTORY_RULE_SET = """
 ==================================================
 4. TicketCancelHistoryPage
@@ -174,7 +169,6 @@ TicketCancelHistoryPage Rules:
 - Use this page object only for ticket cancellation history navigation scenarios.
 - User should normally be logged in before using this page object, because MY ACCOUNT and transaction history are account-specific.
 """
-
 CHART_VACANCY_PAGE_RULE_SET = """
 ==================================================
 5. ChartsVacancy Page Object
@@ -242,7 +236,6 @@ charts_page.select_boarding_station("HWH")
 
 assert charts_page.is_chart_result_displayed()
 """
-
 TRAIN_BOOKING_PAGE_RULE_SET = """
 ==================================================
 6. BookingPage Page Object
@@ -278,14 +271,14 @@ Parameter Details:
     Default value: "SL"
 
     Supported values:
-    - "SL" for Sleeper
-    - "3A" for AC 3 Tier
-    - "2A" for AC 2 Tier
-    - "1A" for AC First Class
-    - "3E" for AC 3 Economy
-    - "CC" for Chair Car
-    - "EC" for Executive Chair Car
-    - "2S" for Second Sitting
+    - "SL"  for Sleeper
+    - "3A"  for AC 3 Tier
+    - "2A"  for AC 2 Tier
+    - "1A"  for AC First Class
+    - "3E"  for AC 3 Economy
+    - "CC"  for Chair Car
+    - "EC"  for Executive Chair Car
+    - "2S"  for Second Sitting
 
 BookingPage Rules:
 - Use BookingPage only for train booking scenarios.
@@ -299,7 +292,6 @@ BookingPage Rules:
 - Do not call wait_for_results() directly.
 - Do not call handle_confirmation_popup_if_present() directly.
 - Do not invent validation/assertion methods for BookingPage.
-- Do not perform payment confirmation.
 - Stop the booking flow after BookingPage clicks Book Now and handles confirmation if present.
 - If the user does not provide preferred class, use "SL" as default.
 - If the user provides a class, use that class as preferred_class.
@@ -307,6 +299,20 @@ BookingPage Rules:
 - The input_date value passed to select_train_based_on_availability() must be the same as the date value passed to SearchTrainsPage.search_trains().
 - The preferred_class value passed to select_train_based_on_availability() must be the same as the classes value passed to SearchTrainsPage.search_trains().
 - Do not use different date or class values between SearchTrainsPage and BookingPage.
+- The value passed to BookingPage.select_train_based_on_availability(
+      input_date,
+      preferred_class
+  )
+  must be the same as the values passed to SearchTrainsPage.search_trains(
+      date,
+      classes
+  ).
+
+- Mapping rule:
+  - input_date must use the same value as search_trains(date=...)
+  - preferred_class must use the same value as search_trains(classes=...)
+
+- Do not generate different date or class values between SearchTrainsPage and BookingPage.
 
 Correct Example:
 search_page.search_trains(
@@ -321,8 +327,22 @@ booking_page.select_train_based_on_availability(
     input_date="26/06/2026",
     preferred_class="SL"
 )
-"""
 
+Incorrect Example:
+search_page.search_trains(
+    source="HWH",
+    destination="YPR",
+    date="26/06/2026",
+    classes="SL",
+    general="GENERAL"
+)
+
+booking_page.select_train_based_on_availability(
+    input_date="27/06/2026",
+    preferred_class="3A"
+)
+
+"""
 PASSENGER_DETAILS_PAGE_RULE_SET = """
 ==================================================
 7. PassengerDetailsPage
@@ -337,6 +357,14 @@ PassengerDetailsPage is used to fill passenger details during the IRCTC ticket b
 Functional Description:
 This page object handles the passenger details step after a train has been selected for booking. It fills one or more passenger records, enters the passenger mobile number, optionally selects auto-upgrade, selects payment mode, and clicks Continue.
 
+Important Flow Dependency:
+- Use PassengerDetailsPage only after BookingPage has selected a train and the passenger details page is displayed.
+- Do not use PassengerDetailsPage directly from the IRCTC home page.
+- Do not use PassengerDetailsPage before train selection.
+- This page object does not search trains.
+- This page object does not select trains.
+- This page object does not perform final payment.
+
 Main Method:
 - fill_all_passengers(
       passengers: list[dict],
@@ -345,6 +373,45 @@ Main Method:
       payment_mode: str = "card"
   ) -> None
 
+Method Purpose:
+fill_all_passengers() fills all passenger rows, enters mobile number, handles auto-upgrade option, selects payment mode, and clicks Continue.
+
+Parameter Details:
+- passengers:
+    A list of passenger dictionaries.
+    Each passenger dictionary must contain:
+    - name
+    - age
+    - gender
+    - berth
+
+    Example:
+    passengers = [
+        {"name": "DHIRAJKUMAR M", "age": "22", "gender": "M", "berth": "SL"},
+        {"name": "DEV", "age": "22", "gender": "M", "berth": "SU"}
+    ]
+
+- mobile_number:
+    Passenger mobile number as string.
+    Example:
+    "8489403967"
+
+- auto_upgrade:
+    Boolean value.
+    True means select the auto-upgrade option.
+    False means skip auto-upgrade.
+    Default is False.
+
+- payment_mode:
+    Payment mode as string.
+    Allowed values:
+    - "card"
+    - "upi"
+
+    "card" selects Credit & Debit card payment option.
+    "upi" selects BHIM/UPI payment option.
+    Default is "card".
+
 PassengerDetailsPage Rules:
 - Use this page object only for filling passenger details.
 - Use only fill_all_passengers() in generated tests.
@@ -352,6 +419,58 @@ PassengerDetailsPage Rules:
 - Do not write raw Playwright locators in generated tests.
 - Do not invent extra PassengerDetailsPage methods.
 - Do not perform final payment confirmation.
+- Stop the test after fill_all_passengers() completes, unless another existing page object method is explicitly available.
+- passenger data must be passed as list[dict].
+- Each passenger dictionary must include name, age, gender, and berth.
+- payment_mode must be either "card" or "upi".
+- auto_upgrade must be True or False.
+
+Helper Methods:
+The following methods exist internally in PassengerDetailsPage but should not be called directly from generated tests:
+- wait_for_passenger_page()
+- click_add_passenger()
+- fill_single_passenger(passenger_index: int, name: str, age: str, gender: str, berth: str)
+- set_auto_upgrade(auto_upgrade: bool)
+- select_payment_mode(payment_mode: str)
+- click_continue()
+
+Assertion Rules:
+- PassengerDetailsPage currently does not provide a validation/assertion method.
+- Do not invent validation methods like is_passenger_details_submitted() unless that method exists in the page object.
+- If assertion is required, suggest adding a validation method to the page object.
+- Recommended future validation method:
+  - is_passenger_details_continue_successful() -> bool
+    Returns True if the next booking step is displayed after clicking Continue.
+
+Example Usage:
+passenger_page = PassengerDetailsPage(page)
+
+passenger_page.fill_all_passengers(
+    passengers=[
+        {"name": "DHIRAJKUMAR M", "age": "22", "gender": "M", "berth": "SL"},
+        {"name": "DEV", "age": "22", "gender": "M", "berth": "SU"},
+        {"name": "PARASHURAM", "age": "24", "gender": "M", "berth": "MB"},
+        {"name": "VILAS", "age": "23", "gender": "M", "berth": "LB"},
+        {"name": "MADHU", "age": "22", "gender": "F", "berth": "UB"}
+    ],
+    mobile_number="8489403967",
+    auto_upgrade=True,
+    payment_mode="card"
+)
+
+Recommended Future Assertion Usage:
+passenger_page = PassengerDetailsPage(page)
+
+passenger_page.fill_all_passengers(
+    passengers=[
+        {"name": "DHIRAJKUMAR M", "age": "22", "gender": "M", "berth": "SL"}
+    ],
+    mobile_number="8489403967",
+    auto_upgrade=True,
+    payment_mode="card"
+)
+
+assert passenger_page.is_passenger_details_continue_successful()
 """
 
 MOBILE_DEVICE_LOGIN_PAGE_RULE_SET = """
@@ -382,7 +501,6 @@ MobileLoginPage Rules:
 - Do not hardcode real credentials unless the user explicitly provides them.
 - If credentials are not provided, use placeholder values such as "username" and "password".
 """
-
 MOBILE_DEVICE_SEARCH_TRAIN_PAGE_RULE_SET = """
 ==================================================
 2. MobileSearchTrainsPage
@@ -393,6 +511,10 @@ from pages.mobile_pages.mobile_search_page import MobileSearchTrainsPage
 
 Purpose:
 MobileSearchTrainsPage is used to search trains in the IRCTC mobile UI.
+It fills source station, destination station, optional journey date, optional class, optional quota/category, and clicks the Search button.
+
+Functional Description:
+This page object handles the mobile UI train search flow. It is used when the test scenario is specifically related to mobile train search or mobile responsive train search.
 
 Methods:
 - search_trains(
@@ -401,18 +523,92 @@ Methods:
       date: str = None,
       classes: str = None,
       general: str = None
-  ) -> None
+  ) -> None:
+    Searches trains from source station to destination station.
+    If date is provided, it selects the journey date.
+    If classes is provided, it selects the travel class.
+    If general is provided, it selects the quota/category.
+    Finally, it clicks the Search button.
 
-- is_search_results_displayed() -> bool
+- is_search_results_displayed() -> bool:
     Returns True if the mobile train search result page is displayed.
-"""
+    Returns False otherwise.
 
+Parameter Details:
+- source:
+    Source station name or station code.
+    Example: "HWH", "KGP", "MAS"
+
+- destination:
+    Destination station name or station code.
+    Example: "YPR", "JTJ", "NDLS"
+
+- date:
+    Journey date in dd/mm/yyyy format.
+    This parameter is optional.
+    Example: "26/06/2026"
+    If user does not provide date, pass None.
+
+- classes:
+    Travel class.
+    This parameter is optional.
+    Example: "SL", "3A", "2A", "CC"
+    If user does not provide class, pass None.
+
+- general:
+    Quota/category.
+    This parameter is optional.
+    Example: "GENERAL", "TATKAL", "LADIES"
+    If user does not provide quota/category, pass None.
+
+MobileSearchTrainsPage Rules:
+- Use this page object only for mobile UI train search scenarios.
+- Login is not required for train search unless the user explicitly asks for login before searching.
+- Use search_trains() to perform the mobile train search.
+- Use is_search_results_displayed() to assert that search results are displayed.
+- Do not write raw Playwright locators inside generated tests.
+- Do not call internal locators directly from the test.
+- Do not invent extra methods that are not listed here.
+- Do not perform booking or payment from this page object.
+- This page object only searches trains and validates search result page display.
+
+Assertion Rules:
+- After calling search_trains(), assert using is_search_results_displayed().
+- Do not assert URL directly in the generated test.
+- Do not create custom assertion helper functions inside the generated test.
+
+Example Usage:
+mobile_search_page = MobileSearchTrainsPage(page)
+
+mobile_search_page.search_trains(
+    source="HWH",
+    destination="YPR",
+    date="26/06/2026",
+    classes="SL",
+    general="GENERAL"
+)
+
+assert mobile_search_page.is_search_results_displayed()
+
+Example Usage Without Optional Fields:
+mobile_search_page = MobileSearchTrainsPage(page)
+
+mobile_search_page.search_trains(
+    source="HWH",
+    destination="YPR",
+    date=None,
+    classes=None,
+    general=None
+)
+
+assert mobile_search_page.is_search_results_displayed()
+"""
 MOBILE_DEVICE_PNR_STATUS_PAGE_RULE_SET = """
 ==================================================
 3. MobilePNRStatusPage
 ==================================================
 Import:
-from pages.mobile_pages.mobile_pnr_status_page import MobilePNRStatusPage
+from pages.mobile_pages.mobile_search_page import MobileSearchTrainsPage
 
 Purpose:
 PNRStatusPage is used to check the status of a valid pnr_number.
@@ -426,15 +622,74 @@ Methods:
 PNRStatusPage Rules:
 - Login is not required to check PNR Status search.
 """
-
 MOBILE_CHART_VACANCY_PAGE_RULE_SET = """
 ==================================================
 4. MobileChartsVacancyPage
 ==================================================
 Import:
 from pages.mobile_pages.mobile_chart_vacancy_page import MobileChartsVacancyPage
-"""
+Purpose:
+ChartsVacancy is used to open the IRCTC Charts / Vacancy page in a new browser tab and search train chart/vacancy details using train number and boarding station.
+It checks Chart vacancy in mobile UI
 
+Methods:
+- open_charts() -> None
+    Clicks the "CHARTS / VACANCY" option from the IRCTC home page.
+    This opens the Charts / Vacancy page in a new tab.
+    The new tab is stored internally as self.new_tab.
+
+- select_train(train_number: str) -> None
+    Enters the train number into the train search input on the Charts / Vacancy page.
+    Example:
+    select_train("12863")
+
+- select_boarding_station(boarding_station_code: str) -> None
+    Selects the boarding station using station code and clicks "Get Train Chart".
+    Example:
+    select_boarding_station("HWH")
+
+- is_chart_result_displayed() -> bool
+    Verifies whether the chart/vacancy result flow completed.
+    Returns True if either:
+    1. The "Chart not prepared" popup/message is visible, or
+    2. The page URL changes to the train composition result page containing "charts/traincomposition".
+    Returns False if the expected result page is not displayed within timeout.
+
+ChartsVacancy Rules:
+- Use ChartsVacancy for Charts / Vacancy test scenarios.
+- As the first step, use MobileLoginPage.load_login_page() to load the IRCTC home page for mobile UI.
+- Login is not required for Charts / Vacancy search unless the user explicitly asks for login.
+- Call open_charts() before calling select_train() or select_boarding_station().
+- Call select_train(train_number) before select_boarding_station(boarding_station_code).
+- After open_charts(), the page object handles the new tab internally using self.new_tab.
+- Do not pass page or new_tab from the test case to ChartsVacancy methods.
+- Do not write raw Playwright locators in generated tests.
+- Do not invent extra methods that are not listed here.
+- Always assert Charts / Vacancy scenarios using is_chart_result_displayed().
+- A "Chart not prepared" message should be treated as a valid displayed result because the application responded to the search.
+
+Required Parameters:
+- train_number:
+    Train number as string.
+    Example: "12863"
+
+- boarding_station_code:
+    Boarding station code as string.
+    Example: "HWH"
+
+Example Usage:
+login_page = MobileLoginPage(page)
+login_page.load_login_page()
+
+charts_page = ChartsVacancy(page)
+charts_page.open_charts()
+charts_page.select_train("12863")
+charts_page.select_boarding_station("HWH")
+
+assert charts_page.is_chart_result_displayed()
+
+
+"""
 MOBILE_BOOKING_PAGE_RULE_SET = """
 ==================================================
 5. MobileBookingPage Page Object
@@ -442,7 +697,102 @@ MOBILE_BOOKING_PAGE_RULE_SET = """
 
 Import:
 from pages.mobile_pages.mobile_booking_page import MobileBookingPage
+
+Purpose:
+MobileBookingPage is used to select a train from the train availability results
+and proceed with booking by clicking the available "Book Now" option.
+
+Used to perform ticket booking operations in Mobile UI.
+
+Important Workflow Dependency:
+MobileBookingPage should be used only after:
+1. MobileLoginPage is used to load the IRCTC mobile home page.
+2. User login is completed (if required).
+3. MobileSearchTrainsPage is used to search train availability.
+4. Train search results are displayed.
+
+Methods:
+- select_train_based_on_availability(input_date: str, preferred_class: str = "SL") -> None
+    Selects a train based on seat availability for the given journey date and preferred class.
+    It checks available train cards, selects the preferred class, verifies availability for the given date,
+    skips unavailable trains, and clicks the enabled "Book Now" button for a valid train.
+    It also handles the confirmation popup if it appears.
+
+Parameter Details:
+- input_date:
+    Journey date in dd/mm/yyyy format.
+    Example: "26/06/2026"
+
+- preferred_class:
+    Preferred travel class.
+    Default value: "SL"
+
+    Supported values:
+    - "SL"  for Sleeper
+    - "3A"  for AC 3 Tier
+    - "2A"  for AC 2 Tier
+    - "1A"  for AC First Class
+    - "3E"  for AC 3 Economy
+    - "CC"  for Chair Car
+    - "EC"  for Executive Chair Car
+    - "2S"  for Second Sitting
+
+MobileBookingPage Rules:
+- As this is a mobile pages use mobile_page as parameter in the generated test cases.
+- Use MobileBookingPage only for train booking scenarios.
+- To book a train, the user should be logged in first using MobileLoginPage (if required).
+- Before using MobileBookingPage, search train availability using MobileSearchTrainsPage.
+- After login and train search, call select_train_based_on_availability().
+- Do not use MobileBookingPage before MobileSearchTrainsPage.
+- Do not write raw Playwright locators in generated tests.
+- Do not call MobileBookingPage helper/private methods directly.
+- Do not call methods whose names start with underscore.
+- Do not call wait_for_results() directly.
+- Do not call handle_confirmation_popup_if_present() directly.
+- Do not invent validation/assertion methods for MobileBookingPage.
+- Stop the booking flow after MobileBookingPage clicks Book Now and handles confirmation if present.
+- 
+
+Data Consistency Rules:
+- If the user does not provide preferred class, use "SL" as default.
+- If the user provides a class, use that class as preferred_class.
+- If the user provides journey date in short format such as "26/06/26",
+  convert it to "26/06/2026" before passing it to MobileBookingPage.
+
+Mapping Rules (STRICT):
+- input_date MUST be the same as the value passed to MobileSearchTrainsPage.search_trains(date=...)
+- preferred_class MUST be the same as the value passed to MobileSearchTrainsPage.search_trains(classes=...)
+- Do NOT generate different date or class values between MobileSearchTrainsPage and MobileBookingPage.
+
+Correct Example:
+search_page.search_trains(
+    source="HWH",
+    destination="YPR",
+    date="26/06/2026",
+    classes="SL",
+    general="GENERAL"
+)
+
+booking_page.select_train_based_on_availability(
+    input_date="26/06/2026",
+    preferred_class="SL"
+)
+
+Incorrect Example:
+search_page.search_trains(
+    source="HWH",
+    destination="YPR",
+    date="26/06/2026",
+    classes="SL",
+    general="GENERAL"
+)
+
+booking_page.select_train_based_on_availability(
+    input_date="27/06/2026",
+    preferred_class="3A"
+)
 """
+
 
 def get_available_page_objects() -> str:
     """
@@ -552,5 +902,7 @@ Generated Test Structure Rule:
       assert login_page.login_status("username")
 """
 
+
 if __name__ == "__main__":
+    # FOR DEBUGING
     print(get_available_page_objects())
