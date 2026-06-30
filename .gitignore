@@ -1,25 +1,25 @@
-# Ignore PyCharm project settings
+# PyCharm
 .idea/
 
-# Ignore Python cache folders
+# Python cache
 __pycache__/
-
-# Ignore compiled Python files
 *.pyc
 *.pyo
 *.pyd
 
-# Ignore virtual environments
+# Virtual environments
 .venv/
 .env
 
-# Ignore logs
+# Logs
 reports/logs/
 
-# Ignore Reports
-reports
-reports/html
-reports/allure-results
+# Generated reports
+reports/
+reports/html/
+reports/allure-results/
+reports/screenshots/
 
-# Ignore generated tests
-tests/generated/
+# OS files
+.DS_Store
+Thumbs.db
