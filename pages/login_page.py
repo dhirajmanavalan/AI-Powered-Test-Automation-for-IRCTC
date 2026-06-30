@@ -1,62 +1,124 @@
-from playwright.sync_api import Page, expect
+from playwright.sync_api import Page
 import tkinter as tk
 
-def get_screen_size():
-    root = tk.Tk()
-    root.withdraw()
-    width = root.winfo_screenwidth()
-    height = root.winfo_screenheight()
-    root.destroy()
-    return width, height
+
+import os
+
+def get_viewport_size():
+
+    # Railway deployment
+    if os.getenv("RAILWAY_ENVIRONMENT"):
+        return 1920, 1080
+
+    # Local machine
+    try:
+        import tkinter as tk
+
+        root = tk.Tk()
+        root.withdraw()
+
+        width = root.winfo_screenwidth()
+        height = root.winfo_screenheight()
+
+        root.destroy()
+
+        return width, height
+
+    except Exception:
+        return 1920, 1080
+
 
 class LoginPage:
+
     URL = "https://www.irctc.co.in/nget/train-search"
 
-    def __init__(self, page:Page):
+    def __init__(self, page: Page):
         self.page = page
 
-    #LOCATORS
+    # =========================
+    # LOCATORS
+    # =========================
+
+    ENGLISH_BUTTON = "//button[text()='English']"
+
     LOGIN_REGISTER_BUTTON = "//a[text()=' LOGIN / REGISTER ']"
     USERNAME_INPUT_BOX = "//input[@placeholder='User Name']"
     PASSWORD_INPUT_BOX = "//input[@placeholder='Password']"
     SIGN_IN_BUTTON = "//button[text()='SIGN IN']"
 
+    # =========================
+    # LOAD PAGE
+    # =========================
 
     def load_login_page(self):
         """
-         Load the Login page of IRCTC
-        """
-        self.page.goto(LoginPage.URL)
-        # self.page.set_viewport_size({"width": 1920, "height": 940})
-
-        # Dynamic screen size
-        width, height = get_screen_size()
-        self.page.set_viewport_size({"width": width, "height": height})
-
-
-    def login(self, name:str,password:str):
-        """
-            Logs in to IRCTC using the given username and password.
-
-            This method performs the complete login flow:
-            1. Clicks the Login/Register button.
-            2. Locates the username and password input fields.
-            3. Clears any existing values from both fields.
-            4. Enters the provided username and password.
-            5. Clicks the Sign In button to submit the login form.
-
-            Args:
-                name (str): The username, email, or mobile number used for login.
-                password (str): The password associated with the given user account.
-
-            Returns:
-                None
+        Load IRCTC page and handle language popup.
         """
 
-        self.page.locator(self.LOGIN_REGISTER_BUTTON).click()
+        width, height = get_viewport_size()
 
-        user_name = self.page.locator(self.USERNAME_INPUT_BOX)
-        pass_word = self.page.locator(self.PASSWORD_INPUT_BOX)
+        self.page.set_viewport_size({
+            "width": width,
+            "height": height
+        })
+
+        self.page.goto(
+            LoginPage.URL,
+            wait_until="domcontentloaded"
+        )
+
+        print("IRCTC page opened")
+
+        try:
+
+            print("Waiting for language popup...")
+
+            self.page.wait_for_selector(
+                self.ENGLISH_BUTTON,
+                timeout=15000
+            )
+
+            self.page.locator(
+                self.ENGLISH_BUTTON
+            ).scroll_into_view_if_needed()
+
+            self.page.wait_for_timeout(2000)
+
+            self.page.locator(
+                self.ENGLISH_BUTTON
+            ).click(force=True)
+
+            print("English language selected")
+
+            self.page.wait_for_timeout(2000)
+
+        except Exception as error:
+
+            print(
+                f"Language popup handling failed: {error}"
+            )
+
+    # =========================
+    # LOGIN
+    # =========================
+
+    def login(
+            self,
+            name: str,
+            password: str
+    ):
+
+        self.page.locator(
+            self.LOGIN_REGISTER_BUTTON
+        ).click()
+
+        user_name = self.page.locator(
+            self.USERNAME_INPUT_BOX
+        )
+
+        pass_word = self.page.locator(
+            self.PASSWORD_INPUT_BOX
+        )
 
         user_name.clear()
         user_name.fill(name)
@@ -64,21 +126,30 @@ class LoginPage:
         pass_word.clear()
         pass_word.fill(password)
 
-        self.page.click(self.SIGN_IN_BUTTON)
+        self.page.locator(
+            self.SIGN_IN_BUTTON
+        ).click()
 
-    def login_status(self,name:str)->bool:
-        """
-        Checks whether the user login was successful.
+    # =========================
+    # LOGIN STATUS
+    # =========================
 
-        Returns:
-            bool:
-                True if the user is logged in successfully.
-                False if the login fails or the logged-in state is not detected.
-        """
-        LOGGED_IN_USER_NAME = f"// span[contains(text(), '{name}')]"
+    def login_status(
+            self,
+            name: str
+    ) -> bool:
 
-        self.page.locator(LOGGED_IN_USER_NAME).wait_for(state="visible")
-        logged_in_user_name = self.page.locator(LOGGED_IN_USER_NAME)
-        return  logged_in_user_name.is_visible()
+        logged_in_user = (
+            f"//span[contains(text(), '{name}')]"
+        )
 
+        self.page.locator(
+            logged_in_user
+        ).wait_for(
+            state="visible",
+            timeout=10000
+        )
 
+        return self.page.locator(
+            logged_in_user
+        ).is_visible()

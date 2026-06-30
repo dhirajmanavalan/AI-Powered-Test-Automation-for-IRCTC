@@ -2,9 +2,9 @@
 # It is a workflow orchestrator that connects all Antigravity components and runs the full test lifecycle.
 # It takes your tests from storage → decides order → executes them → gives final results.
 
-from antigravity.discovery import TestDiscovery
-from antigravity.prioritiser import TestPrioritiser
-from antigravity.cloud_executor import CloudExecutor
+from execution_engine.discovery import TestDiscovery
+from execution_engine.prioritiser import TestPrioritiser
+from execution_engine.cloud_executor import CloudExecutor
 from utils.logger import get_logger
 
 
